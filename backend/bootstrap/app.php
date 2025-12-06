@@ -69,6 +69,10 @@ $container->set(App\Controllers\AdminController::class, function ($c) {
     );
 });
 
+$container->set(App\Controllers\UploadController::class, function ($c) {
+    return new App\Controllers\UploadController();
+});
+
 // Middleware
 $container->set(App\Middleware\AuthMiddleware::class, function ($c) {
     return new App\Middleware\AuthMiddleware($c->get(App\Services\AuthService::class));

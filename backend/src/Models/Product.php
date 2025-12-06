@@ -79,26 +79,44 @@ class Product
      */
     public function update(int $id, array $data): bool
     {
-        $sql = "UPDATE products SET 
-                name = :name, 
-                description = :description, 
-                price = :price, 
-                category = :category, 
-                stock = :stock, 
-                image_url = :image_url,
-                updated_at = NOW()
-                WHERE id = :id";
+        // Build dynamic SQL and params based on provided fields
+        $updates = [];
+        $params = [':id' => $id];
+
+        if (isset($data['name'])) {
+            $updates[] = "name = :name";
+            $params[':name'] = $data['name'];
+        }
+        if (isset($data['description'])) {
+            $updates[] = "description = :description";
+            $params[':description'] = $data['description'];
+        }
+        if (isset($data['price'])) {
+            $updates[] = "price = :price";
+            $params[':price'] = $data['price'];
+        }
+        if (isset($data['category'])) {
+            $updates[] = "category = :category";
+            $params[':category'] = $data['category'];
+        }
+        if (isset($data['stock'])) {
+            $updates[] = "stock = :stock";
+            $params[':stock'] = $data['stock'];
+        }
+        if (isset($data['image_url'])) {
+            $updates[] = "image_url = :image_url";
+            $params[':image_url'] = $data['image_url'];
+        }
+
+        if (empty($updates)) {
+            return true; // Nothing to update
+        }
+
+        $updates[] = "updated_at = NOW()";
+        $sql = "UPDATE products SET " . implode(", ", $updates) . " WHERE id = :id";
 
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
-            ':id' => $id,
-            ':name' => $data['name'],
-            ':description' => $data['description'] ?? null,
-            ':price' => $data['price'],
-            ':category' => $data['category'] ?? null,
-            ':stock' => $data['stock'] ?? 0,
-            ':image_url' => $data['image_url'] ?? null,
-        ]);
+        return $stmt->execute($params);
     }
 
     /**

@@ -18,6 +18,8 @@ const AdminProducts = () => {
         stock: '',
         image_url: '',
     });
+    const [uploading, setUploading] = useState(false);
+    const [imagePreview, setImagePreview] = useState(null);
 
     useEffect(() => {
         fetchProducts();
@@ -45,18 +47,100 @@ const AdminProducts = () => {
         }));
     };
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to backend
+        try {
+            setUploading(true);
+            setError('');
+            const token = localStorage.getItem('adminToken');
+            const formDataToSend = new FormData();
+            formDataToSend.append('image', file);
+
+            console.log('Uploading image:', file.name, 'Size:', file.size, 'Type:', file.type);
+            console.log('Token:', token ? 'Present' : 'Missing');
+
+            const response = await axios.post(
+                'http://localhost:8000/api/admin/upload',
+                formDataToSend,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
+            );
+
+            console.log('Upload response:', response.data);
+
+            if (response.data.success) {
+                // Set the returned URL to form
+                const imageUrl = response.data.data.url;
+                console.log('Image URL set to:', imageUrl);
+                
+                setFormData(prev => {
+                    const updated = {
+                        ...prev,
+                        image_url: imageUrl
+                    };
+                    console.log('Updated formData:', updated);
+                    return updated;
+                });
+                console.log('Image uploaded successfully:', imageUrl);
+                console.log('Form data updated with new image URL');
+                setError('');
+            } else {
+                console.error('Upload failed:', response.data);
+                setError('Upload failed: ' + (response.data.message || 'Unknown error'));
+                setImagePreview(null);
+            }
+        } catch (err) {
+            console.error('Upload error:', err);
+            console.error('Error response:', err.response?.data);
+            console.error('Error status:', err.response?.status);
+            setError('Failed to upload image: ' + (err.response?.data?.message || err.message));
+            setImagePreview(null);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
+        // Validate required fields
+        if (!formData.name || formData.price === '' || formData.stock === '') {
+            setError('Name, Price, and Stock are required');
+            return;
+        }
+        
+        console.log('Validation passed');
+        console.log('Current formData before payload creation:', formData);
+
         try {
             const token = localStorage.getItem('adminToken');
+            
+            console.log('Current formData state before submit:', formData);
+            console.log('image_url in formData:', formData.image_url);
+            
             const payload = {
                 ...formData,
                 price: parseFloat(formData.price),
                 stock: parseInt(formData.stock),
             };
 
+            console.log('Payload before sending:', payload);
+            console.log('image_url in payload:', payload.image_url);
             console.log('Submitting payload:', payload);
             console.log('Payload JSON:', JSON.stringify(payload));
 
@@ -78,6 +162,17 @@ const AdminProducts = () => {
                 if (response.data.success) {
                     setProducts(products.map(p => p.id === editingProduct.id ? response.data.data : p));
                     setEditingProduct(null);
+                    setShowForm(false);
+                    setFormData({
+                        name: '',
+                        description: '',
+                        price: '',
+                        category: '',
+                        stock: '',
+                        image_url: '',
+                    });
+                    setImagePreview(null);
+                    console.log('Product updated successfully and form closed');
                 }
             } else {
                 // Create product
@@ -116,15 +211,19 @@ const AdminProducts = () => {
     };
 
     const handleEdit = (product) => {
+        console.log('Edit clicked for product:', product);
         setEditingProduct(product);
-        setFormData({
+        const newFormData = {
             name: product.name,
             description: product.description || '',
             price: product.price,
             category: product.category || '',
             stock: product.stock,
             image_url: product.image_url || '',
-        });
+        };
+        console.log('Setting form data to:', newFormData);
+        setFormData(newFormData);
+        setImagePreview(product.image_url || null);
         setShowForm(true);
     };
 
@@ -179,6 +278,7 @@ const AdminProducts = () => {
                                 stock: '',
                                 image_url: '',
                             });
+                            setImagePreview(null);
                             setShowForm(true);
                         }}
                         className="btn-primary flex items-center gap-2"
@@ -195,14 +295,27 @@ const AdminProducts = () => {
                     </div>
                 )}
 
-                {/* Add/Edit Form */}
+                {/* Add/Edit Form - MODAL POPUP */}
                 {showForm && (
-                    <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">
-                            {editingProduct ? 'Edit Product' : 'Add New Product'}
-                        </h3>
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-xl">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-2xl font-bold text-gray-900">
+                                    {editingProduct ? 'Edit Product' : 'Add New Product'}
+                                </h3>
+                                <button
+                                    onClick={() => {
+                                        setShowForm(false);
+                                        setEditingProduct(null);
+                                        setImagePreview(null);
+                                    }}
+                                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
 
-                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                                 <input
@@ -264,15 +377,75 @@ const AdminProducts = () => {
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                                <input
-                                    type="url"
-                                    name="image_url"
-                                    value={formData.image_url}
-                                    onChange={handleInputChange}
-                                    placeholder="https://..."
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                />
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
+                                <div className="space-y-3">
+                                    {/* Image Preview */}
+                                    {(imagePreview || formData.image_url) && (
+                                        <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-primary-200">
+                                            <img
+                                                src={
+                                                    imagePreview
+                                                        ? imagePreview.startsWith('data:')
+                                                            ? imagePreview
+                                                            : 'http://localhost:8000' + imagePreview
+                                                        : formData.image_url
+                                                            ? (formData.image_url.startsWith('http')
+                                                                ? formData.image_url
+                                                                : 'http://localhost:8000' + formData.image_url)
+                                                            : ''
+                                                }
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    console.error('Image preview failed to load:', e.target.src);
+                                                    e.target.style.display = 'none';
+                                                }}
+                                                onLoad={() => {
+                                                    console.log('Image preview loaded successfully');
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* File Upload */}
+                                    <div className="flex items-center gap-2">
+                                        <label className="flex-1 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 transition">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                disabled={uploading}
+                                                className="hidden"
+                                            />
+                                            <span className="text-sm text-gray-600">
+                                                {uploading ? '⏳ Uploading...' : '📁 Click to upload image'}
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    {/* Or URL input - only show if no image uploaded yet */}
+                                    {!formData.image_url && (
+                                        <div>
+                                            <p className="text-xs text-gray-500 mb-2">Or paste image URL:</p>
+                                            <input
+                                                type="text"
+                                                name="image_url"
+                                                value={formData.image_url}
+                                                onChange={handleInputChange}
+                                                placeholder="https://..."
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Show uploaded image URL */}
+                                    {formData.image_url && (
+                                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                                            <p className="text-xs text-green-600 font-medium mb-1">✓ Image uploaded:</p>
+                                            <p className="text-xs text-gray-600 break-all font-mono">{formData.image_url}</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="md:col-span-2 flex gap-2">
@@ -291,6 +464,7 @@ const AdminProducts = () => {
                                 </button>
                             </div>
                         </form>
+                        </div>
                     </div>
                 )}
 
@@ -325,12 +499,26 @@ const AdminProducts = () => {
                                         <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center gap-3">
-                                                    {product.image_url && (
-                                                        <img
-                                                            src={product.image_url}
-                                                            alt={product.name}
-                                                            className="w-10 h-10 rounded-lg object-cover"
-                                                        />
+                                                    {product.image_url ? (
+                                                        <div className="relative">
+                                                            <img
+                                                                src={product.image_url.startsWith('http') ? product.image_url : 'http://localhost:8000' + product.image_url}
+                                                                alt={product.name}
+                                                                className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+                                                                onError={(e) => {
+                                                                    console.warn('Failed to load product image:', e.target.src);
+                                                                    e.target.style.display = 'none';
+                                                                    e.target.nextElementSibling && (e.target.nextElementSibling.style.display = 'flex');
+                                                                }}
+                                                            />
+                                                            <div style={{display: 'none'}} className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-xs text-gray-400">
+                                                                No image
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-xs text-gray-400">
+                                                            No image
+                                                        </div>
                                                     )}
                                                     <div>
                                                         <p className="font-medium text-gray-900">{product.name}</p>

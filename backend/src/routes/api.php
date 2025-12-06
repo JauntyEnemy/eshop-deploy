@@ -4,6 +4,7 @@ use App\Controllers\ProductController;
 use App\Controllers\OrderController;
 use App\Controllers\DeliveryController;
 use App\Controllers\AdminController;
+use App\Controllers\UploadController;
 use App\Middleware\AuthMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -19,6 +20,10 @@ $app->get('/', function ($request, $response) {
 
 // Admin authentication routes
 $app->post('/api/admin/login', [AdminController::class, 'login']);
+
+// Upload route (protected)
+$app->post('/api/admin/upload', [UploadController::class, 'uploadImage'])
+    ->add(AuthMiddleware::class);
 
 // Product routes (public)
 $app->group('/api/products', function (RouteCollectorProxy $group) {

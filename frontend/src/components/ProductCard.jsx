@@ -14,7 +14,13 @@ const ProductCard = ({ product }) => {
         >
             <div className="relative aspect-square overflow-hidden bg-gray-100">
                 <img
-                    src={product.image_url || 'https://via.placeholder.com/300'}
+                    src={
+                        product.image_url
+                            ? (/^https?:\/\//.test(product.image_url)
+                                ? product.image_url
+                                : 'http://localhost:8000' + product.image_url)
+                            : 'https://via.placeholder.com/300'
+                    }
                     alt={product.name}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                 />
