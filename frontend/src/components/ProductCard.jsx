@@ -43,7 +43,7 @@ const ProductCard = ({ product }) => {
 
                 <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-gray-900">
-                        ${parseFloat(product.price).toFixed(2)}
+                        AED {parseFloat(product.price).toFixed(2)}
                     </span>
                     <div className="text-xs text-gray-400">
                         {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}

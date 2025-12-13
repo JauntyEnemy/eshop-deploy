@@ -17,6 +17,9 @@ const AdminInventory = () => {
         category: '',
         description: ''
     });
+    const [uploading, setUploading] = useState(false);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [editingProductForImage, setEditingProductForImage] = useState(null);
 
     useEffect(() => {
         fetchProducts();
@@ -60,6 +63,7 @@ const AdminInventory = () => {
 
     const handleEditProduct = (product) => {
         setEditingId(product.id);
+        setEditingProductForImage(product.id);
         setEditFormData({
             name: product.name,
             price: product.price,
@@ -67,6 +71,70 @@ const AdminInventory = () => {
             category: product.category || '',
             description: product.description || ''
         });
+        setImagePreview(product.image_url || null);
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to backend
+        try {
+            setUploading(true);
+            const token = localStorage.getItem('adminToken');
+            const formDataToSend = new FormData();
+            formDataToSend.append('image', file);
+
+            console.log('Uploading image:', file.name, 'Size:', file.size, 'Type:', file.type);
+            console.log('Token:', token ? 'Present' : 'Missing');
+            console.log('Editing product ID:', editingProductForImage);
+
+            const response = await axios.post(
+                'http://localhost:8000/api/admin/upload',
+                formDataToSend,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
+            );
+
+            console.log('Upload response:', response.data);
+
+            if (response.data.success) {
+                const imageUrl = response.data.data.url;
+                console.log('Image URL received:', imageUrl);
+                
+                // Update the products list with new image URL
+                setProducts(products.map(p => 
+                    p.id === editingProductForImage 
+                        ? { ...p, image_url: imageUrl }
+                        : p
+                ));
+                console.log('Image uploaded successfully:', imageUrl);
+                setError('');
+            } else {
+                console.error('Upload failed:', response.data);
+                setError('Upload failed: ' + (response.data.message || 'Unknown error'));
+                setImagePreview(null);
+            }
+        } catch (err) {
+            console.error('Upload error:', err);
+            console.error('Error response:', err.response?.data);
+            console.error('Error status:', err.response?.status);
+            setError('Failed to upload image: ' + (err.response?.data?.message || err.message));
+            setImagePreview(null);
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleSaveProduct = async (productId) => {
@@ -313,6 +381,140 @@ const AdminInventory = () => {
                         </table>
                     </div>
                 </div>
+
+                {/* Edit Modal */}
+                {editingId && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl max-w-2xl w-full max-h-96 overflow-y-auto p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold text-gray-900">Edit Product</h3>
+                                <button
+                                    onClick={() => {
+                                        setEditingId(null);
+                                        setImagePreview(null);
+                                        setEditingProductForImage(null);
+                                    }}
+                                    className="p-1 hover:bg-gray-100 rounded"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Name */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                    <input
+                                        type="text"
+                                        value={editFormData.name}
+                                        onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+
+                                {/* Price & Stock */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={editFormData.price}
+                                            onChange={(e) => setEditFormData({...editFormData, price: e.target.value})}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                                        <input
+                                            type="number"
+                                            value={editFormData.stock}
+                                            onChange={(e) => setEditFormData({...editFormData, stock: e.target.value})}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Category & Description */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                    <input
+                                        type="text"
+                                        value={editFormData.category}
+                                        onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <textarea
+                                        value={editFormData.description}
+                                        onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                                        rows="2"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+
+                                {/* Image Upload */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+                                    <div className="space-y-2">
+                                        {imagePreview && (
+                                            <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-primary-200">
+                                                <img
+                                                    src={imagePreview.startsWith('http') ? imagePreview : 'http://localhost:8000' + imagePreview}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        console.error('Image preview failed to load:', e.target.src);
+                                                        e.target.style.display = 'none';
+                                                    }}
+                                                    onLoad={() => {
+                                                        console.log('Image preview loaded successfully');
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                        <label className="flex items-center justify-center px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 transition">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                disabled={uploading}
+                                                className="hidden"
+                                            />
+                                            <span className="text-sm text-gray-600">
+                                                {uploading ? '⏳ Uploading...' : '📁 Click to upload new image'}
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-2 justify-end pt-4">
+                                    <button
+                                        onClick={() => {
+                                            setEditingId(null);
+                                            setImagePreview(null);
+                                            setEditingProductForImage(null);
+                                        }}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => handleSaveProduct(editingId)}
+                                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
+                                    >
+                                        <Check className="w-4 h-4" />
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AdminLayout>
     );

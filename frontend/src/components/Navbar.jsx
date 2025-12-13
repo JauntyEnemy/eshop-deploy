@@ -12,9 +12,6 @@ const Navbar = () => {
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
                     <Link to="/" className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                            Z
-                        </div>
                         <span className="font-bold text-xl text-gray-900">Zahrat Alrabie</span>
                     </Link>
 
@@ -47,10 +44,6 @@ const Navbar = () => {
                                     {cartCount}
                                 </span>
                             )}
-                        </button>
-
-                        <button className="hidden md:block p-2 text-gray-500 hover:text-primary-600 transition-colors">
-                            <User className="w-5 h-5" />
                         </button>
 
                         <button className="md:hidden p-2 text-gray-500 hover:text-primary-600 transition-colors">
