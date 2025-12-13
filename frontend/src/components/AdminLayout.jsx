@@ -23,7 +23,7 @@ const AdminLayout = ({ children }) => {
     ];
 
     return (
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex h-screen bg-gray-100 print:hidden">
             {/* Sidebar */}
             <div
                 className={`${sidebarOpen ? 'w-64' : 'w-20'

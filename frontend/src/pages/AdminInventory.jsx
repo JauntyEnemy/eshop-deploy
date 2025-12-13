@@ -29,10 +29,24 @@ const AdminInventory = () => {
     const [uploading, setUploading] = useState(false);
     const [imagePreview, setImagePreview] = useState(null);
     const [isCustomBrand, setIsCustomBrand] = useState(false);
+    const [categories, setCategories] = useState([]);
+    const [isCustomCategory, setIsCustomCategory] = useState(false);
 
     useEffect(() => {
         fetchProducts();
+        fetchCategories();
     }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/api/categories');
+            if (response.data.success) {
+                setCategories(response.data.data || []);
+            }
+        } catch (err) {
+            console.error('Failed to load categories', err);
+        }
+    };
 
     const fetchProducts = async () => {
         try {
@@ -64,6 +78,17 @@ const AdminInventory = () => {
         } else {
             setIsCustomBrand(false);
             setFormData(prev => ({ ...prev, brand: value }));
+        }
+    };
+
+    const handleCategoryChange = (e) => {
+        const value = e.target.value;
+        if (value === 'custom_new') {
+            setIsCustomCategory(true);
+            setFormData(prev => ({ ...prev, category: '' }));
+        } else {
+            setIsCustomCategory(false);
+            setFormData(prev => ({ ...prev, category: value }));
         }
     };
 
@@ -133,6 +158,20 @@ const AdminInventory = () => {
                 stock: parseInt(formData.stock),
             };
 
+            // If custom category, create it first
+            if (isCustomCategory && formData.category) {
+                try {
+                    await axios.post('http://localhost:8000/api/admin/categories',
+                        { name: formData.category },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    // Refresh categories
+                    await fetchCategories();
+                } catch (e) {
+                    console.error('Failed to support new category', e);
+                }
+            }
+
             if (editingProduct) {
                 // Update product
                 const response = await axios.put(
@@ -187,15 +226,20 @@ const AdminInventory = () => {
             image_url: '',
         });
         setIsCustomBrand(false);
+        setIsCustomCategory(false);
         setImagePreview(null);
     };
 
     const handleEdit = (product) => {
         setEditingProduct(product);
 
-        // If brand exists and is not in defaults, it's custom.
-        const isCustom = product.brand && !DEFAULT_BRANDS.includes(product.brand);
-        setIsCustomBrand(!!isCustom);
+        // Check custom brand
+        const isCustomBrandVal = product.brand && !DEFAULT_BRANDS.includes(product.brand);
+        setIsCustomBrand(!!isCustomBrandVal);
+
+        // Check custom category
+        const isCustomCatVal = product.category && !categories.some(c => c.name === product.category);
+        setIsCustomCategory(!!isCustomCatVal);
 
         setFormData({
             name: product.name,
@@ -278,6 +322,7 @@ const AdminInventory = () => {
                             setEditingProduct(null);
                             resetForm();
                             setShowForm(true);
+                            fetchCategories(); // Refresh categories on open
                         }}
                         className="btn-primary flex items-center gap-2"
                     >
@@ -347,14 +392,44 @@ const AdminInventory = () => {
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                    <input
-                                        type="text"
-                                        name="category"
-                                        value={formData.category}
-                                        onChange={handleInputChange}
-                                        placeholder="Fruits, Vegetables, etc."
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                    />
+                                    {!isCustomCategory ? (
+                                        <select
+                                            name="category"
+                                            value={formData.category}
+                                            onChange={handleCategoryChange}
+                                            required
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                                        >
+                                            <option value="">Select Category</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                            ))}
+                                            <option value="custom_new">+ Create New Category</option>
+                                        </select>
+                                    ) : (
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                name="category"
+                                                value={formData.category}
+                                                onChange={handleInputChange}
+                                                placeholder="Enter category name"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                                autoFocus
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsCustomCategory(false);
+                                                    setFormData(prev => ({ ...prev, category: '' }));
+                                                }}
+                                                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg"
+                                                title="Back to list"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div>

@@ -5,6 +5,7 @@ use App\Controllers\OrderController;
 use App\Controllers\DeliveryController;
 use App\Controllers\AdminController;
 use App\Controllers\UploadController;
+use App\Controllers\CategoryController;
 use App\Middleware\AuthMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -31,6 +32,9 @@ $app->group('/api/products', function (RouteCollectorProxy $group) {
     $group->get('/{id}', [ProductController::class, 'show']);
 });
 
+// Category routes (public)
+$app->get('/api/categories', [CategoryController::class, 'index']);
+
 // Delivery routes (public)
 $app->group('/api/delivery', function (RouteCollectorProxy $group) {
     $group->get('/zones', [DeliveryController::class, 'index']);
@@ -54,6 +58,9 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
     $group->post('/products', [ProductController::class, 'store']);
     $group->put('/products/{id}', [ProductController::class, 'update']);
     $group->delete('/products/{id}', [ProductController::class, 'delete']);
+
+    // Category management
+    $group->post('/categories', [CategoryController::class, 'store']);
 
     // Order management
     $group->get('/orders', [OrderController::class, 'index']);

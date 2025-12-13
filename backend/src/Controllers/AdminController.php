@@ -124,7 +124,7 @@ class AdminController
             $pendingOrders = $stmt->fetch()['total'];
 
             // Get total revenue
-            $stmt = $this->db->query("SELECT SUM(total) as revenue FROM orders WHERE status != 'cancelled'");
+            $stmt = $this->db->query("SELECT SUM(total) as revenue FROM orders WHERE status = 'delivered'");
             $totalRevenue = $stmt->fetch()['revenue'] ?? 0;
 
             // Get total products

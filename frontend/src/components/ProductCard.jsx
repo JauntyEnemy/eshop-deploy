@@ -35,10 +35,16 @@ const ProductCard = ({ product }) => {
             </div>
 
             <div className="p-4">
-                <div className="text-xs text-primary-600 font-semibold mb-1 uppercase tracking-wider">
-                    {product.category}
-                </div>
+
+
                 <h3 className="text-lg font-bold text-gray-900 mb-1">{product.name}</h3>
+                {product.brand && (
+                    <div className="mb-2">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide bg-blue-50 text-blue-600 border border-blue-100">
+                            {product.brand}
+                        </span>
+                    </div>
+                )}
                 <p className="text-sm text-gray-500 line-clamp-2 mb-3">{product.description}</p>
 
                 <div className="flex items-center justify-between">

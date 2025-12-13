@@ -46,6 +46,10 @@ $container->set(App\Models\DeliveryZone::class, function ($c) {
     return new App\Models\DeliveryZone($c->get(PDO::class));
 });
 
+$container->set(App\Models\Category::class, function ($c) {
+    return new App\Models\Category($c->get(PDO::class));
+});
+
 // Controllers
 $container->set(App\Controllers\ProductController::class, function ($c) {
     return new App\Controllers\ProductController($c->get(App\Models\Product::class));
@@ -60,6 +64,10 @@ $container->set(App\Controllers\OrderController::class, function ($c) {
 
 $container->set(App\Controllers\DeliveryController::class, function ($c) {
     return new App\Controllers\DeliveryController($c->get(App\Models\DeliveryZone::class));
+});
+
+$container->set(App\Controllers\CategoryController::class, function ($c) {
+    return new App\Controllers\CategoryController($c->get(App\Models\Category::class));
 });
 
 $container->set(App\Controllers\AdminController::class, function ($c) {
