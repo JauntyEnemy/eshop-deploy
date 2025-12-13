@@ -163,7 +163,10 @@ const AdminOrders = () => {
                                                         onChange={(e) => updateOrderStatus(order.id, e.target.value)}
                                                         className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer border-0 ${statusColors[order.status]}`}
                                                     >
-                                                        {statuses.map(status => (
+                                                        {(JSON.parse(localStorage.getItem('admin') || '{}').role === 3
+                                                            ? statuses.filter(s => ['out_for_delivery', 'delivered', 'cancelled'].includes(s))
+                                                            : statuses
+                                                        ).map(status => (
                                                             <option key={status} value={status}>
                                                                 {status.replace('_', ' ').toUpperCase()}
                                                             </option>

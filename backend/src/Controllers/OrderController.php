@@ -118,6 +118,20 @@ class OrderController
         try {
             $this->orderModel->updateStatus($id, $data['status']);
 
+            // Manage Stock
+            $oldStatus = $order['status'];
+            $newStatus = $data['status'];
+            $deductedStatuses = ['out_for_delivery', 'delivered'];
+
+            $wasDeducted = in_array($oldStatus, $deductedStatuses);
+            $shouldBeDeducted = in_array($newStatus, $deductedStatuses);
+
+            if (!$wasDeducted && $shouldBeDeducted) {
+                $this->orderModel->deductStock($id);
+            } elseif ($wasDeducted && !$shouldBeDeducted) {
+                $this->orderModel->restoreStock($id);
+            }
+
             // Send SMS notification for certain status changes
             if ($data['status'] === 'out_for_delivery' && !empty($order['customer_phone'])) {
                 $this->smsService->sendDeliveryNotification($order['customer_phone'], '30-45 دقيقة');

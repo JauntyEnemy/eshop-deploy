@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { orderService } from '../services/api';
-import { Search, Package, CheckCircle, Truck, Clock } from 'lucide-react';
+import { Search, Package, CheckCircle, Truck, Clock, XCircle } from 'lucide-react';
 
 const TrackOrder = () => {
+    // ... (no change to hooks)
     const location = useLocation();
     const [trackingCode, setTrackingCode] = useState(location.state?.trackingCode || '');
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Auto-track if coming from checkout
     useEffect(() => {
         if (location.state?.trackingCode) {
             handleTrack(null, location.state.trackingCode);
@@ -19,7 +19,7 @@ const TrackOrder = () => {
 
     const handleTrack = async (e, code = null) => {
         if (e) e.preventDefault();
-        
+
         const codeToUse = code || trackingCode;
         if (!codeToUse.trim()) return;
 
@@ -95,35 +95,45 @@ const TrackOrder = () => {
                         </div>
                     </div>
 
-                    <div className="relative mb-12">
-                        <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 -translate-y-1/2 z-0" />
-                        <div
-                            className="absolute top-1/2 left-0 h-1 bg-primary-500 -translate-y-1/2 z-0 transition-all duration-1000"
-                            style={{ width: `${(getStatusStep(order.status) / (steps.length - 1)) * 100}%` }}
-                        />
+                    {order.status === 'cancelled' ? (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-8 mb-12 text-center">
+                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <XCircle className="w-8 h-8 text-red-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-red-700 mb-2">Order Cancelled</h3>
+                            <p className="text-zinc-600">This order has been cancelled.</p>
+                        </div>
+                    ) : (
+                        <div className="relative mb-12">
+                            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 -translate-y-1/2 z-0" />
+                            <div
+                                className="absolute top-1/2 left-0 h-1 bg-primary-500 -translate-y-1/2 z-0 transition-all duration-1000"
+                                style={{ width: `${(getStatusStep(order.status) / (steps.length - 1)) * 100}%` }}
+                            />
 
-                        <div className="relative z-10 flex justify-between">
-                            {steps.map((step, idx) => {
-                                const isCompleted = getStatusStep(order.status) >= idx;
-                                const isCurrent = getStatusStep(order.status) === idx;
+                            <div className="relative z-10 flex justify-between">
+                                {steps.map((step, idx) => {
+                                    const isCompleted = getStatusStep(order.status) >= idx;
+                                    const isCurrent = getStatusStep(order.status) === idx;
 
-                                return (
-                                    <div key={idx} className="flex flex-col items-center">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 transition-colors duration-300 ${isCompleted
+                                    return (
+                                        <div key={idx} className="flex flex-col items-center">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 transition-colors duration-300 ${isCompleted
                                                 ? 'bg-primary-500 border-primary-500 text-white'
                                                 : 'bg-white border-gray-200 text-gray-300'
-                                            }`}>
-                                            <step.icon className="w-5 h-5" />
+                                                }`}>
+                                                <step.icon className="w-5 h-5" />
+                                            </div>
+                                            <span className={`mt-3 text-xs font-medium ${isCurrent ? 'text-primary-600' : isCompleted ? 'text-gray-900' : 'text-gray-400'
+                                                }`}>
+                                                {step.label}
+                                            </span>
                                         </div>
-                                        <span className={`mt-3 text-xs font-medium ${isCurrent ? 'text-primary-600' : isCompleted ? 'text-gray-900' : 'text-gray-400'
-                                            }`}>
-                                            {step.label}
-                                        </span>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="space-y-4">
                         <h3 className="font-bold text-gray-900">Order Items</h3>

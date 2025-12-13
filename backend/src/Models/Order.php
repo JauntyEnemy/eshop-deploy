@@ -187,6 +187,44 @@ class Order
     }
 
     /**
+     * Deduct stock for order items
+     */
+    public function deductStock(int $orderId): void
+    {
+        $stmt = $this->db->prepare("SELECT product_id, quantity FROM order_items WHERE order_id = :order_id");
+        $stmt->execute([':order_id' => $orderId]);
+        $items = $stmt->fetchAll();
+
+        $updateStmt = $this->db->prepare("UPDATE products SET stock = stock - :quantity WHERE id = :id");
+
+        foreach ($items as $item) {
+            $updateStmt->execute([
+                ':quantity' => $item['quantity'],
+                ':id' => $item['product_id']
+            ]);
+        }
+    }
+
+    /**
+     * Restore stock for order items
+     */
+    public function restoreStock(int $orderId): void
+    {
+        $stmt = $this->db->prepare("SELECT product_id, quantity FROM order_items WHERE order_id = :order_id");
+        $stmt->execute([':order_id' => $orderId]);
+        $items = $stmt->fetchAll();
+
+        $updateStmt = $this->db->prepare("UPDATE products SET stock = stock + :quantity WHERE id = :id");
+
+        foreach ($items as $item) {
+            $updateStmt->execute([
+                ':quantity' => $item['quantity'],
+                ':id' => $item['product_id']
+            ]);
+        }
+    }
+
+    /**
      * Generate a unique tracking code
      */
     private function generateTrackingCode(): string
@@ -194,7 +232,7 @@ class Order
         // Format: ZAR-YYYYMMDD-RANDOM (e.g., ZAR-20251202-ABC123)
         $date = date('Ymd');
         $random = strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
-        
+
         $trackingCode = "ZAR-{$date}-{$random}";
 
         // Ensure uniqueness

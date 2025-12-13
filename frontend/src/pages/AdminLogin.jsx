@@ -43,8 +43,13 @@ const AdminLogin = () => {
 
                 // Use a small delay to ensure localStorage is written
                 setTimeout(() => {
-                    console.log('Redirecting to dashboard...');
-                    navigate('/admin/dashboard', { replace: true });
+                    console.log('Redirecting...');
+                    const role = response.data.data.admin.role;
+                    if (role === 2 || role === 3) {
+                        navigate('/admin/orders', { replace: true });
+                    } else {
+                        navigate('/admin/dashboard', { replace: true });
+                    }
                 }, 100);
             } else {
                 console.log('Response data structure invalid:', response.data);

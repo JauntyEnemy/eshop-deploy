@@ -73,6 +73,10 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
     $group->put('/delivery-zones/{id}', [DeliveryController::class, 'update']);
     $group->delete('/delivery-zones/{id}', [DeliveryController::class, 'delete']);
 
+    // Staff management
+    $group->get('/staff', [AdminController::class, 'listStaff']);
+    $group->post('/staff', [AdminController::class, 'createStaff']);
+
 })->add(AuthMiddleware::class);
 
 // Handle OPTIONS requests for CORS

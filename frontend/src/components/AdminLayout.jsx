@@ -15,12 +15,19 @@ const AdminLayout = ({ children }) => {
     };
 
     const menuItems = [
-        { path: '/admin/dashboard', label: 'Dashboard', icon: Home },
-        { path: '/admin/inventory', label: 'Products & Inventory', icon: Package },
-        { path: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-        { path: '/admin/customers', label: 'Customers', icon: Users },
-        { path: '/admin/reports', label: 'Reports', icon: BarChart3 },
+        { path: '/admin/dashboard', label: 'Dashboard', icon: Home, roles: [1] },
+        { path: '/admin/inventory', label: 'Products & Inventory', icon: Package, roles: [1] },
+        { path: '/admin/orders', label: 'Orders', icon: ShoppingCart, roles: [1, 2, 3] },
+        { path: '/admin/customers', label: 'Customers', icon: Users, roles: [1] },
+        { path: '/admin/reports', label: 'Reports', icon: BarChart3, roles: [1] },
     ];
+
+    let role = admin.role;
+    // Normalize role for legacy sessions
+    if (role === 'admin') role = 1;
+    if (role === 'seller') role = 2;
+    role = role || 1;
+    const filteredMenuItems = menuItems.filter(item => item.roles.includes(role));
 
     return (
         <div className="flex h-screen bg-gray-100 print:hidden">
@@ -41,7 +48,7 @@ const AdminLayout = ({ children }) => {
 
                 {/* Menu */}
                 <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-                    {menuItems.map((item) => {
+                    {filteredMenuItems.map((item) => {
                         const Icon = item.icon;
                         // Handle both /admin/inventory and /admin/products for the unified page
                         const isActive = location.pathname === item.path ||
