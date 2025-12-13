@@ -36,4 +36,8 @@ export const deliveryService = {
     getSlots: () => api.get('/delivery/slots'),
 };
 
+export const categoryService = {
+    getAll: () => api.get('/categories'),
+};
+
 export default api;
