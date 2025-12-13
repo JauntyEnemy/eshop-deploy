@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { ChevronLeft, MapPin, Clock, Phone, AlertCircle, Loader } from 'lucide-react';
+import { ChevronLeft, Clock, AlertCircle, Loader } from 'lucide-react';
 import axios from 'axios';
+import DeliveryMap from '../components/DeliveryMap';
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -18,13 +19,26 @@ const Checkout = () => {
     const [formData, setFormData] = useState({
         customer_name: '',
         customer_phone: '',
-        customer_address: '',
         delivery_zone_id: '',
         delivery_slot_id: '',
         notes: '',
     });
 
+    const [addressState, setAddressState] = useState({
+        emirate: '',
+        region: '',
+        street: ''
+    });
+
+    const EMIRATES = ['Ajman', 'Sharjah', 'Dubai'];
+    const REGIONS = {
+        'Ajman': ['Al Nuaimia', 'Al Rawda', 'City Center', 'Al Jurf', 'Corniche', 'Al Rashidiya'],
+        'Sharjah': ['Al Nahda', 'Al Taawun', 'Al Majaz', 'Muweilah', 'University City', 'Al Qasimia'],
+        'Dubai': ['Deira', 'Bur Dubai', 'Business Bay', 'Downtown', 'Marina', 'JLT', 'Palm Jumeirah', 'Al Barsha']
+    };
+
     const [selectedZone, setSelectedZone] = useState(null);
+    const [distance, setDistance] = useState(0);
 
     // Fetch delivery zones and slots on mount
     useEffect(() => {
@@ -35,8 +49,17 @@ const Checkout = () => {
                     axios.get('http://localhost:8000/api/delivery/slots'),
                 ]);
 
-                setDeliveryZones(zonesRes.data.data || []);
+                const zones = zonesRes.data.data || [];
+                setDeliveryZones(zones);
                 setDeliverySlots(slotsRes.data.data || []);
+
+                // Auto-select first zone for backend compatibility
+                if (zones.length > 0) {
+                    setFormData(prev => ({
+                        ...prev,
+                        delivery_zone_id: zones[0].id
+                    }));
+                }
             } catch (err) {
                 console.error('Failed to fetch delivery data:', err);
                 setError('Failed to load delivery options. Please refresh the page.');
@@ -81,8 +104,9 @@ const Checkout = () => {
     };
 
     const calculateDeliveryFee = () => {
-        if (selectedZone) {
-            return parseFloat(selectedZone.fee);
+        if (distance > 0) {
+            // Dynamic Fee: Base 10 AED + 2 AED per km
+            return 10 + (distance * 2);
         }
         return 0;
     };
@@ -112,13 +136,21 @@ const Checkout = () => {
             return;
         }
 
-        if (!formData.customer_address.trim()) {
-            setError('Please enter your delivery address');
+        if (!addressState.emirate) {
+            setError('Please select an Emirate');
+            return;
+        }
+        if (!addressState.region) {
+            setError('Please select a Region');
+            return;
+        }
+        if (!addressState.street.trim()) {
+            setError('Please enter your street address');
             return;
         }
 
-        if (!formData.delivery_zone_id) {
-            setError('Please select a delivery zone');
+        if (distance === 0) {
+            setError('Please pin your location on the map');
             return;
         }
 
@@ -134,7 +166,7 @@ const Checkout = () => {
             const orderData = {
                 customer_name: formData.customer_name,
                 customer_phone: formData.customer_phone,
-                customer_address: formData.customer_address,
+                customer_address: `${addressState.street}, ${addressState.region}, ${addressState.emirate}`,
                 delivery_zone_id: parseInt(formData.delivery_zone_id),
                 delivery_slot_id: parseInt(formData.delivery_slot_id),
                 subtotal: cartTotal,
@@ -248,19 +280,55 @@ const Checkout = () => {
                                     </div>
 
                                     {/* Address */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Delivery Address *
-                                        </label>
-                                        <textarea
-                                            name="customer_address"
-                                            value={formData.customer_address}
-                                            onChange={handleInputChange}
-                                            placeholder="Enter your complete delivery address"
-                                            rows="3"
-                                            disabled={loading}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
-                                        />
+                                    {/* Address Fields */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Emirates *
+                                            </label>
+                                            <select
+                                                value={addressState.emirate}
+                                                onChange={(e) => setAddressState(prev => ({ ...prev, emirate: e.target.value, region: '' }))}
+                                                disabled={loading}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100 bg-white"
+                                            >
+                                                <option value="">Select Emirate</option>
+                                                {EMIRATES.map(em => (
+                                                    <option key={em} value={em}>{em}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Region *
+                                            </label>
+                                            <select
+                                                value={addressState.region}
+                                                onChange={(e) => setAddressState(prev => ({ ...prev, region: e.target.value }))}
+                                                disabled={loading || !addressState.emirate}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100 bg-white"
+                                            >
+                                                <option value="">Select Region</option>
+                                                {addressState.emirate && REGIONS[addressState.emirate]?.map(reg => (
+                                                    <option key={reg} value={reg}>{reg}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Street Address *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={addressState.street}
+                                                onChange={(e) => setAddressState(prev => ({ ...prev, street: e.target.value }))}
+                                                placeholder="Building name, apartment no, street no..."
+                                                disabled={loading}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Notes */}
@@ -281,40 +349,16 @@ const Checkout = () => {
                                 </div>
                             </div>
 
-                            {/* Delivery Zone */}
+                            {/* Delivery Location Map */}
                             <div className="bg-white p-6 rounded-xl border border-gray-200">
                                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                    <MapPin className="w-5 h-5 text-primary-600" />
-                                    Select Delivery Zone *
+                                    <Clock className="w-5 h-5 text-primary-600" />
+                                    Delivery Location & Distance
                                 </h2>
-
-                                <div className="space-y-2">
-                                    {deliveryZones.length === 0 ? (
-                                        <p className="text-gray-500 text-sm">Loading delivery zones...</p>
-                                    ) : (
-                                        deliveryZones.map(zone => (
-                                            <label
-                                                key={zone.id}
-                                                className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name="delivery_zone_id"
-                                                    value={zone.id}
-                                                    checked={formData.delivery_zone_id === String(zone.id)}
-                                                    onChange={(e) => handleZoneChange(e.target.value)}
-                                                    disabled={loading}
-                                                    className="w-4 h-4 text-primary-600"
-                                                />
-                                                <div className="ml-3 flex-1">
-                                                    <p className="font-medium text-gray-900">{zone.name}</p>
-                                                    <p className="text-sm text-gray-500">{zone.estimated_time} delivery</p>
-                                                </div>
-                                                <p className="font-bold text-primary-600">AED {parseFloat(zone.fee).toFixed(2)}</p>
-                                            </label>
-                                        ))
-                                    )}
-                                </div>
+                                <DeliveryMap
+                                    onDistanceChange={setDistance}
+                                    addressQuery={addressState.region && addressState.emirate ? `${addressState.region}, ${addressState.emirate}` : ''}
+                                />
                             </div>
 
                             {/* Delivery Slot */}

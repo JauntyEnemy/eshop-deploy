@@ -19,7 +19,11 @@
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.25",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.555.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.9.6",
     "tailwind-merge": "^3.4.0"
   }
