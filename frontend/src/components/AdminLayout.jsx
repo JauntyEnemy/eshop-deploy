@@ -16,8 +16,7 @@ const AdminLayout = ({ children }) => {
 
     const menuItems = [
         { path: '/admin/dashboard', label: 'Dashboard', icon: Home },
-        { path: '/admin/products', label: 'Products', icon: Package },
-        { path: '/admin/inventory', label: 'Inventory', icon: BarChart3 },
+        { path: '/admin/inventory', label: 'Products & Inventory', icon: Package },
         { path: '/admin/orders', label: 'Orders', icon: ShoppingCart },
         { path: '/admin/customers', label: 'Customers', icon: Users },
         { path: '/admin/reports', label: 'Reports', icon: BarChart3 },
@@ -27,9 +26,8 @@ const AdminLayout = ({ children }) => {
         <div className="flex h-screen bg-gray-100">
             {/* Sidebar */}
             <div
-                className={`${
-                    sidebarOpen ? 'w-64' : 'w-20'
-                } bg-gray-900 text-white transition-all duration-300 flex flex-col`}
+                className={`${sidebarOpen ? 'w-64' : 'w-20'
+                    } bg-gray-900 text-white transition-all duration-300 flex flex-col`}
             >
                 {/* Logo */}
                 <div className="p-4 border-b border-gray-800 flex items-center justify-between">
@@ -45,16 +43,17 @@ const AdminLayout = ({ children }) => {
                 <nav className="flex-1 overflow-y-auto p-4 space-y-2">
                     {menuItems.map((item) => {
                         const Icon = item.icon;
-                        const isActive = location.pathname === item.path;
+                        // Handle both /admin/inventory and /admin/products for the unified page
+                        const isActive = location.pathname === item.path ||
+                            (item.path === '/admin/inventory' && location.pathname === '/admin/products');
                         return (
                             <button
                                 key={item.path}
                                 onClick={() => navigate(item.path)}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                                    isActive
-                                        ? 'bg-primary-600 text-white'
-                                        : 'text-gray-300 hover:bg-gray-800'
-                                }`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                                    ? 'bg-primary-600 text-white'
+                                    : 'text-gray-300 hover:bg-gray-800'
+                                    }`}
                             >
                                 <Icon className="w-5 h-5 shrink-0" />
                                 {sidebarOpen && <span className="text-sm font-medium">{item.label}</span>}

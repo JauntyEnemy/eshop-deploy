@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS products (
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
     category VARCHAR(100),
+    brand VARCHAR(100),
     stock INT DEFAULT 0,
     image_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

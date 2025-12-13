@@ -11,7 +11,6 @@ import Checkout from './pages/Checkout';
 import TrackOrder from './pages/TrackOrder';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminProducts from './pages/AdminProducts';
 import AdminInventory from './pages/AdminInventory';
 import AdminOrders from './pages/AdminOrders';
 import AdminCustomers from './pages/AdminCustomers';
@@ -57,15 +56,16 @@ function AppContent() {
                         }
                     />
                     <Route
-                        path="/admin/products"
+                        path="/admin/inventory"
                         element={
                             <ProtectedAdminRoute>
-                                <AdminProducts />
+                                <AdminInventory />
                             </ProtectedAdminRoute>
                         }
                     />
+                    {/* Redirect /admin/products to /admin/inventory for backward compatibility */}
                     <Route
-                        path="/admin/inventory"
+                        path="/admin/products"
                         element={
                             <ProtectedAdminRoute>
                                 <AdminInventory />

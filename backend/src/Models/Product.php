@@ -58,8 +58,8 @@ class Product
      */
     public function create(array $data): int
     {
-        $sql = "INSERT INTO products (name, description, price, category, stock, image_url, created_at, updated_at) 
-                VALUES (:name, :description, :price, :category, :stock, :image_url, NOW(), NOW())";
+        $sql = "INSERT INTO products (name, description, price, category, brand, stock, image_url, created_at, updated_at) 
+                VALUES (:name, :description, :price, :category, :brand, :stock, :image_url, NOW(), NOW())";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
@@ -67,6 +67,7 @@ class Product
             ':description' => $data['description'] ?? null,
             ':price' => $data['price'],
             ':category' => $data['category'] ?? null,
+            ':brand' => $data['brand'] ?? null,
             ':stock' => $data['stock'] ?? 0,
             ':image_url' => $data['image_url'] ?? null,
         ]);
@@ -98,6 +99,10 @@ class Product
         if (isset($data['category'])) {
             $updates[] = "category = :category";
             $params[':category'] = $data['category'];
+        }
+        if (isset($data['brand'])) {
+            $updates[] = "brand = :brand";
+            $params[':brand'] = $data['brand'];
         }
         if (isset($data['stock'])) {
             $updates[] = "stock = :stock";
