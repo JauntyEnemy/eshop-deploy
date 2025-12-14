@@ -148,7 +148,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Recent Orders */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Orders</h3>
 
                     <div className="overflow-x-auto">
@@ -171,9 +171,9 @@ const AdminDashboard = () => {
                                             <td className="py-3 px-4 text-sm font-medium text-gray-900">AED {parseFloat(order.total).toFixed(2)}</td>
                                             <td className="py-3 px-4">
                                                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                        order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                                                            order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                                                                'bg-gray-100 text-gray-800'
+                                                    order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                                                        order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                                                            'bg-gray-100 text-gray-800'
                                                     }`}>
                                                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                                 </span>

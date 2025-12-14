@@ -28,16 +28,14 @@ const ProductCard = ({ product }) => {
 
                 <button
                     onClick={() => addToCart(product)}
-                    className="absolute bottom-4 right-4 p-3 bg-white rounded-full shadow-lg translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary-500 hover:text-white text-primary-600"
+                    className="absolute bottom-3 right-3 md:bottom-4 md:right-4 p-2 md:p-3 bg-white rounded-full shadow-lg opacity-100 translate-y-0 md:translate-y-12 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 transition-all duration-300 hover:bg-primary-500 hover:text-white text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 z-10"
                 >
                     <Plus className="w-5 h-5" />
                 </button>
             </div>
 
-            <div className="p-4">
-
-
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{product.name}</h3>
+            <div className="p-3 md:p-4">
+                <h3 className="text-sm md:text-lg font-bold text-gray-900 mb-1 line-clamp-1">{product.name}</h3>
                 {product.brand && (
                     <div className="mb-2">
                         <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide bg-blue-50 text-blue-600 border border-blue-100">
@@ -45,13 +43,13 @@ const ProductCard = ({ product }) => {
                         </span>
                     </div>
                 )}
-                <p className="text-sm text-gray-500 line-clamp-2 mb-3">{product.description}</p>
+                <p className="text-xs md:text-sm text-gray-500 line-clamp-2 mb-2 md:mb-3 hidden sm:block">{product.description}</p>
 
-                <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold text-gray-900">
-                        AED {parseFloat(product.price).toFixed(2)}<span className="text-sm font-bold text-gray-500">/{product.size ? `${parseFloat(product.size)} ${product.unit_of_measurement}` : (product.sku || 'kg')}</span>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                    <span className="text-sm md:text-xl font-bold text-gray-900">
+                        AED {parseFloat(product.price).toFixed(2)}<span className="text-xs md:text-sm font-bold text-gray-500">/{product.size ? `${parseFloat(product.size)} ${product.unit_of_measurement}` : (product.sku || 'kg')}</span>
                     </span>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-[10px] md:text-xs text-gray-400">
                         {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
                     </div>
                 </div>

@@ -58,9 +58,16 @@ const AdminReports = () => {
         }
 
         orders.forEach(order => {
-            const date = order.created_at.split('T')[0];
-            if (days.hasOwnProperty(date)) {
-                days[date] += parseFloat(order.total || 0);
+            // Safely parse date and get YYYY-MM-DD part
+            try {
+                const dateObj = new Date(order.created_at);
+                const date = dateObj.toISOString().split('T')[0];
+
+                if (days.hasOwnProperty(date)) {
+                    days[date] += parseFloat(order.total || 0);
+                }
+            } catch (e) {
+                console.warn('Invalid date for order:', order.id, order.created_at);
             }
         });
 
@@ -98,6 +105,44 @@ const AdminReports = () => {
         </div>
     );
 
+    const handleExport = () => {
+        if (!orders.length) {
+            alert('No data to export');
+            return;
+        }
+
+        // Define CSV headers
+        const headers = ['Order ID', 'Date', 'Customer Name', 'Status', 'Total (AED)'];
+
+        // Convert orders to CSV rows
+        const csvRows = [
+            headers.join(','),
+            ...orders.map(order => [
+                order.id,
+                new Date(order.created_at).toLocaleDateString(),
+                `"${order.customer_name}"`, // Quote to handle commas in names
+                order.status,
+                parseFloat(order.total).toFixed(2)
+            ].join(','))
+        ];
+
+        // Combine into single string
+        const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+
+        // Create download link
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+
+        // Trigger download
+        link.click();
+
+        // Cleanup
+        document.body.removeChild(link);
+    };
+
     return (
         <AdminLayout>
             <div className="space-y-6">
@@ -107,7 +152,10 @@ const AdminReports = () => {
                         <h2 className="text-3xl font-bold text-gray-900">Sales Reports</h2>
                         <p className="text-gray-600">Analyze your store performance</p>
                     </div>
-                    <button className="btn-primary flex items-center gap-2">
+                    <button
+                        onClick={handleExport}
+                        className="btn-primary flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                    >
                         <Download className="w-4 h-4" />
                         Export Report
                     </button>

@@ -76,6 +76,7 @@ $app->group('/api/admin', function (RouteCollectorProxy $group) {
     // Staff management
     $group->get('/staff', [AdminController::class, 'listStaff']);
     $group->post('/staff', [AdminController::class, 'createStaff']);
+    $group->delete('/staff/{id}', [AdminController::class, 'deleteStaff']);
 
 })->add(AuthMiddleware::class);
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Mail, Phone, MapPin, AlertCircle, Users, Shield, Plus, Lock } from 'lucide-react';
+import { Search, Mail, Phone, MapPin, AlertCircle, Users, Shield, Plus, Lock, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import AdminLayout from '../components/AdminLayout';
 
@@ -21,6 +21,9 @@ const AdminCustomers = () => {
         password: '',
         role: 2
     });
+
+    // Auth Check
+    const currentAdmin = JSON.parse(localStorage.getItem('admin') || '{}');
 
     // Common
     const [error, setError] = useState('');
@@ -83,6 +86,20 @@ const AdminCustomers = () => {
             alert('Account created successfully');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create account');
+        }
+    };
+
+    const handleDeleteStaff = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this staff member?')) return;
+
+        try {
+            const token = localStorage.getItem('adminToken');
+            await axios.delete(`http://localhost:8000/api/admin/staff/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            fetchStaff(); // Refresh list
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to delete staff');
         }
     };
 
@@ -253,6 +270,9 @@ const AdminCustomers = () => {
                                             <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Username</th>
                                             <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Role</th>
                                             <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Created At</th>
+                                            {currentAdmin.role === 1 && (
+                                                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Actions</th>
+                                            )}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -263,8 +283,8 @@ const AdminCustomers = () => {
                                                     <td className="py-3 px-4 text-gray-600">{user.username}</td>
                                                     <td className="py-3 px-4">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${user.role === 1 ? 'bg-purple-100 text-purple-700' :
-                                                                user.role === 3 ? 'bg-indigo-100 text-indigo-700' :
-                                                                    'bg-blue-100 text-blue-700'
+                                                            user.role === 3 ? 'bg-indigo-100 text-indigo-700' :
+                                                                'bg-blue-100 text-blue-700'
                                                             }`}>
                                                             {{ 1: 'Admin', 2: 'Seller', 3: 'Driver' }[user.role] || 'Seller'}
                                                         </span>
@@ -272,6 +292,19 @@ const AdminCustomers = () => {
                                                     <td className="py-3 px-4 text-gray-500 text-sm">
                                                         {new Date(user.created_at).toLocaleDateString()}
                                                     </td>
+                                                    {currentAdmin.role === 1 && (
+                                                        <td className="py-3 px-4">
+                                                            {user.id !== currentAdmin.id && (
+                                                                <button
+                                                                    onClick={() => handleDeleteStaff(user.id)}
+                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                    title="Delete Staff"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    )}
                                                 </tr>
                                             ))
                                         ) : (

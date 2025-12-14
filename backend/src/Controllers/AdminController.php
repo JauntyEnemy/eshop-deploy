@@ -211,4 +211,30 @@ class AdminController
             return ResponseService::error($response, 'Failed to create staff: ' . $e->getMessage(), 500);
         }
     }
+
+    /**
+     * Delete staff
+     */
+    public function deleteStaff(Request $request, Response $response, array $args): Response
+    {
+        $id = $args['id'];
+        $user = $request->getAttribute('user'); // Current logged in admin
+
+        if ($user['id'] == $id) {
+            return ResponseService::error($response, 'Cannot delete your own account', 400);
+        }
+
+        try {
+            $stmt = $this->db->prepare("DELETE FROM admins WHERE id = :id");
+            $stmt->execute([':id' => $id]);
+
+            if ($stmt->rowCount() === 0) {
+                return ResponseService::error($response, 'Staff member not found', 404);
+            }
+
+            return ResponseService::success($response, null, 'Staff member deleted successfully');
+        } catch (\Exception $e) {
+            return ResponseService::error($response, 'Failed to delete staff: ' . $e->getMessage(), 500);
+        }
+    }
 }
