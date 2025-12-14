@@ -2,6 +2,12 @@
 CREATE DATABASE IF NOT EXISTS zahrat_alrabie CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE zahrat_alrabie;
 
+-- Categories Table
+CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
 -- Products Table
 CREATE TABLE IF NOT EXISTS products (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -11,6 +17,8 @@ CREATE TABLE IF NOT EXISTS products (
     category VARCHAR(100),
     brand VARCHAR(100),
     stock INT DEFAULT 0,
+    size DECIMAL(10, 2) DEFAULT NULL,
+    unit_of_measurement VARCHAR(50) DEFAULT NULL,
     image_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -73,17 +81,21 @@ CREATE TABLE IF NOT EXISTS admins (
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(100),
-    role VARCHAR(20) DEFAULT 'admin',
+    role TINYINT(1) DEFAULT 1 COMMENT '1=Admin, 2=Seller, 3=Driver',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Sample Data: Categories
+INSERT IGNORE INTO categories (name) VALUES 
+('Fruits'), ('Vegetables'), ('Berries'), ('Exotic'), ('Herbs');
+
 -- Sample Data: Products
-INSERT INTO products (name, description, price, category, stock, image_url) VALUES 
-('Red Apple', 'Fresh red apples from the farm', 5.00, 'Fruits', 100, 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500'),
-('Banana', 'Sweet organic bananas', 3.50, 'Fruits', 150, 'https://images.unsplash.com/photo-1571771896612-e63411190f75?w=500'),
-('Orange', 'Juicy oranges rich in Vitamin C', 4.00, 'Fruits', 120, 'https://images.unsplash.com/photo-1547514701-42782101795e?w=500'),
-('Strawberry', 'Fresh strawberries pack', 15.00, 'Berries', 50, 'https://images.unsplash.com/photo-1464965911861-746a04b4b0a6?w=500'),
-('Mango', 'Premium sweet mangoes', 8.00, 'Fruits', 80, 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=500');
+INSERT INTO products (name, description, price, category, stock, size, unit_of_measurement, image_url) VALUES 
+('Red Apple', 'Fresh red apples from the farm', 5.00, 'Fruits', 100, 1, 'kg', 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500'),
+('Banana', 'Sweet organic bananas', 3.50, 'Fruits', 150, 1, 'kg', 'https://images.unsplash.com/photo-1571771896612-e63411190f75?w=500'),
+('Orange', 'Juicy oranges rich in Vitamin C', 4.00, 'Fruits', 120, 1, 'kg', 'https://images.unsplash.com/photo-1547514701-42782101795e?w=500'),
+('Strawberry', 'Fresh strawberries pack', 15.00, 'Berries', 50, 250, 'g', 'https://images.unsplash.com/photo-1464965911861-746a04b4b0a6?w=500'),
+('Mango', 'Premium sweet mangoes', 8.00, 'Fruits', 80, 1, 'kg', 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=500');
 
 -- Sample Data: Delivery Zones
 INSERT INTO delivery_zones (name, fee, estimated_time) VALUES 
@@ -100,5 +112,6 @@ INSERT INTO delivery_slots (start_time, end_time, label) VALUES
 ('18:00:00', '21:00:00', 'Evening (6 PM - 9 PM)');
 
 -- Sample Data: Admin (password: password123)
-INSERT INTO admins (username, password, name) VALUES 
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Super Admin');
+-- Using IGNORE to prevent duplicate error on re-run
+INSERT IGNORE INTO admins (username, password, name, role) VALUES 
+('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Super Admin', 1);
