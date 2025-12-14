@@ -21,6 +21,8 @@ const AdminInventory = () => {
         name: '',
         description: '',
         price: '',
+        size: '',
+        unit_of_measurement: 'kg',
         category: '',
         brand: '',
         stock: '',
@@ -220,6 +222,8 @@ const AdminInventory = () => {
             name: '',
             description: '',
             price: '',
+            size: '',
+            unit_of_measurement: 'kg',
             category: '',
             brand: DEFAULT_BRANDS[0],
             stock: '',
@@ -245,6 +249,8 @@ const AdminInventory = () => {
             name: product.name,
             description: product.description || '',
             price: product.price,
+            size: product.size || '',
+            unit_of_measurement: product.unit_of_measurement || 'kg',
             category: product.category || '',
             brand: product.brand || DEFAULT_BRANDS[0],
             stock: product.stock,
@@ -486,6 +492,32 @@ const AdminInventory = () => {
                                 </div>
 
                                 <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Size *</label>
+                                    <input
+                                        type="number"
+                                        name="size"
+                                        value={formData.size}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g. 500"
+                                        required
+                                        step="any"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Unit *</label>
+                                    <input
+                                        type="text"
+                                        name="unit_of_measurement"
+                                        value={formData.unit_of_measurement}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g. kg, g, ml"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+
+                                <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Stock *</label>
                                     <input
                                         type="number"
@@ -645,6 +677,7 @@ const AdminInventory = () => {
                                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Brand</th>
                                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Category</th>
                                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Price</th>
+                                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Size</th>
                                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Stock</th>
                                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Actions</th>
                                 </tr>
@@ -686,6 +719,7 @@ const AdminInventory = () => {
                                             <td className="py-3 px-4 text-sm font-medium text-gray-900">
                                                 AED {parseFloat(product.price).toFixed(2)}
                                             </td>
+                                            <td className="py-3 px-4 text-sm text-gray-600">{product.size ? `${parseFloat(product.size)} ${product.unit_of_measurement}` : '-'}</td>
                                             <td className="py-3 px-4">
                                                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${product.stock > 20 ? 'bg-green-100 text-green-800' :
                                                     product.stock > 5 ? 'bg-yellow-100 text-yellow-800' :

@@ -19,13 +19,13 @@ const AdminDashboard = () => {
         try {
             const token = localStorage.getItem('adminToken');
             console.log('Token:', token ? 'Found' : 'NOT FOUND');
-            
+
             const response = await axios.get('http://localhost:8000/api/admin/dashboard', {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             console.log('Dashboard Response:', response.data);
-            
+
             if (response.data.success) {
                 console.log('Stats data:', response.data.data);
                 setStats(response.data.data);
@@ -80,7 +80,7 @@ const AdminDashboard = () => {
                         <h2 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h2>
                         <p className="text-gray-600">Welcome to your admin panel.</p>
                     </div>
-                    
+
                     {error ? (
                         <div className="flex gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
                             <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
@@ -170,12 +170,11 @@ const AdminDashboard = () => {
                                             <td className="py-3 px-4 text-sm text-gray-900">{order.customer_name}</td>
                                             <td className="py-3 px-4 text-sm font-medium text-gray-900">AED {parseFloat(order.total).toFixed(2)}</td>
                                             <td className="py-3 px-4">
-                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                                                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                    order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                                                    order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                                }`}>
+                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                        order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                                                            order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                                                                'bg-gray-100 text-gray-800'
+                                                    }`}>
                                                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                                 </span>
                                             </td>
@@ -194,25 +193,6 @@ const AdminDashboard = () => {
                             </tbody>
                         </table>
                     </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow text-left">
-                        <Package className="w-8 h-8 text-primary-600 mb-2" />
-                        <h4 className="font-bold text-gray-900 mb-1">Add Product</h4>
-                        <p className="text-sm text-gray-600">Create a new product</p>
-                    </button>
-                    <button className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow text-left">
-                        <ShoppingCart className="w-8 h-8 text-primary-600 mb-2" />
-                        <h4 className="font-bold text-gray-900 mb-1">Manage Orders</h4>
-                        <p className="text-sm text-gray-600">Review and update orders</p>
-                    </button>
-                    <button className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow text-left">
-                        <BarChart3 className="w-8 h-8 text-primary-600 mb-2" />
-                        <h4 className="font-bold text-gray-900 mb-1">View Reports</h4>
-                        <p className="text-sm text-gray-600">Sales and analytics</p>
-                    </button>
                 </div>
             </div>
         </AdminLayout>

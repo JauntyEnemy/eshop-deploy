@@ -58,14 +58,16 @@ class Product
      */
     public function create(array $data): int
     {
-        $sql = "INSERT INTO products (name, description, price, category, brand, stock, image_url, created_at, updated_at) 
-                VALUES (:name, :description, :price, :category, :brand, :stock, :image_url, NOW(), NOW())";
+        $sql = "INSERT INTO products (name, description, price, size, unit_of_measurement, category, brand, stock, image_url, created_at, updated_at) 
+                VALUES (:name, :description, :price, :size, :unit_of_measurement, :category, :brand, :stock, :image_url, NOW(), NOW())";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             ':name' => $data['name'],
             ':description' => $data['description'] ?? null,
             ':price' => $data['price'],
+            ':size' => $data['size'] ?? null,
+            ':unit_of_measurement' => $data['unit_of_measurement'] ?? null,
             ':category' => $data['category'] ?? null,
             ':brand' => $data['brand'] ?? null,
             ':stock' => $data['stock'] ?? 0,
@@ -95,6 +97,14 @@ class Product
         if (isset($data['price'])) {
             $updates[] = "price = :price";
             $params[':price'] = $data['price'];
+        }
+        if (isset($data['size'])) {
+            $updates[] = "size = :size";
+            $params[':size'] = $data['size'];
+        }
+        if (isset($data['unit_of_measurement'])) {
+            $updates[] = "unit_of_measurement = :unit_of_measurement";
+            $params[':unit_of_measurement'] = $data['unit_of_measurement'];
         }
         if (isset($data['category'])) {
             $updates[] = "category = :category";
